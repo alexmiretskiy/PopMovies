@@ -13,9 +13,14 @@ import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
 
+  private final static String POSTER_BASE_URL = "https://image.tmdb.org/t/p/";
+
+  private final static String POSTER_SIZE = "w342";
+
   private List<Movie> moviesData;
 
-  public MoviesAdapter() {
+   MoviesAdapter(List<Movie> moviesData) {
+    this.moviesData = moviesData;
   }
 
   @Override
@@ -32,7 +37,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
   @Override
   public void onBindViewHolder(MoviesAdapterViewHolder holder, int position) {
     String posterPath = moviesData.get(position).getPosterPath();
-    Picasso.with(holder.itemView.getContext()).load("https://image.tmdb.org/t/p/w185" + posterPath)
+    Picasso.with(holder.itemView.getContext()).load(POSTER_BASE_URL + POSTER_SIZE  + posterPath)
         .into(holder.posterImageView);
   }
 
@@ -54,8 +59,5 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
     }
   }
 
-  public void setMoviesData(List<Movie> moviesData) {
-    this.moviesData = moviesData;
-    notifyDataSetChanged();
-  }
+
 }
