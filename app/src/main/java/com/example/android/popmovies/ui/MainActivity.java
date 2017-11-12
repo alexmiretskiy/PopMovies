@@ -10,6 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.example.android.popmovies.BuildConfig;
 import com.example.android.popmovies.R;
+import com.example.android.popmovies.api.ServiceGenerator;
 import com.example.android.popmovies.api.TheMovieDbApi;
 import com.example.android.popmovies.model.Movie;
 import com.example.android.popmovies.model.MovieDiscoverResponse;
@@ -18,8 +19,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,17 +47,35 @@ public class MainActivity extends AppCompatActivity {
 
     showMoviesDataView();
 
-    createTheMovieDbApi();
-    theMovieDbApi.getData(BuildConfig.THE_MOVIE_DB_API_KEY, TheMovieDbApi.SORT_BY_POPULARITY)
-        .enqueue(movieCallback);
+    loadMovies();
   }
 
-  private void createTheMovieDbApi() {
-    Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl(TheMovieDbApi.BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build();
-    theMovieDbApi = retrofit.create(TheMovieDbApi.class);
+  private void loadMovies() {
+    Call<MovieDiscoverResponse<Movie>> call = ServiceGenerator.getService()
+        .getData(BuildConfig.THE_MOVIE_DB_API_KEY, TheMovieDbApi.SORT_BY_POPULARITY);
+
+    call.enqueue(new Callback<MovieDiscoverResponse<Movie>>() {
+      @Override
+      public void onResponse(Call<MovieDiscoverResponse<Movie>> call,
+          Response<MovieDiscoverResponse<Movie>> response) {
+        if (response.isSuccessful()) {
+          List<Movie> movies = new ArrayList<>();
+          movies.addAll(response.body().getResults());
+          recyclerView.setAdapter(new MoviesAdapter(movies));
+          loadingIndicator.setVisibility(View.INVISIBLE);
+        } else {
+          loadingIndicator.setVisibility(View.INVISIBLE);
+          showErrorMessage();
+          Log.d("QuestionsCallback",
+              "Code: " + response.code() + " Message: " + response.message());
+        }
+      }
+
+      @Override
+      public void onFailure(Call<MovieDiscoverResponse<Movie>> call, Throwable t) {
+        t.printStackTrace();
+      }
+    });
   }
 
   Callback<MovieDiscoverResponse<Movie>> movieCallback = new Callback<MovieDiscoverResponse<Movie>>() {
@@ -71,8 +88,8 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(new MoviesAdapter(movies));
         loadingIndicator.setVisibility(View.INVISIBLE);
       } else {
-        showErrorMessage();
         loadingIndicator.setVisibility(View.INVISIBLE);
+        showErrorMessage();
         Log.d("QuestionsCallback", "Code: " + response.code() + " Message: " + response.message());
       }
     }
