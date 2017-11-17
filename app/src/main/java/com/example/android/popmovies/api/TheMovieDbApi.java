@@ -8,7 +8,6 @@ import retrofit2.http.Query;
 
 public interface TheMovieDbApi {
 
-  String BASE_URL = "https://api.themoviedb.org/3/";
   String SORT_BY_POPULARITY = "popularity.desc";
 
   @GET("discover/movie")
